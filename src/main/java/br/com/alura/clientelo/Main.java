@@ -1,5 +1,8 @@
 package br.com.alura.clientelo;
 
+import br.com.alura.clientelo.command.CommandExecutor;
+import br.com.alura.clientelo.command.ProcessadorDeJson;
+import br.com.alura.clientelo.domain.Pedido;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,22 +10,18 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.Scanner;
 
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws IOException, URISyntaxException {
-        Pedido[] pedidos = ProcessadorDeCsv.processaArquivo("pedidos.csv");
+        CommandExecutor executor = new CommandExecutor();
+        //Pedido[] pedidos = executor.executeCommand(new ProcessadorDeCsv(), "pedidos.csv");
+        Pedido[] pedidos = executor.executeCommand(new ProcessadorDeJson(), "pedidos.json");
 
 
         int totalDeProdutosVendidos = 0;
@@ -41,15 +40,15 @@ public class Main {
                 break;
             }
 
-            if (pedidoMaisBarato == null || pedidoAtual.getPreco().multiply(new BigDecimal(pedidoAtual.getQuantidade())).compareTo(pedidoMaisBarato.getPreco().multiply(new BigDecimal(pedidoMaisBarato.getQuantidade()))) < 0) {
+            if (pedidoAtual.isMaisBaratoQue(pedidoMaisBarato)) {
                 pedidoMaisBarato = pedidoAtual;
             }
 
-            if (pedidoMaisCaro == null || pedidoAtual.getPreco().multiply(new BigDecimal(pedidoAtual.getQuantidade())).compareTo(pedidoMaisCaro.getPreco().multiply(new BigDecimal(pedidoMaisCaro.getQuantidade()))) > 0) {
+            if (pedidoAtual.isMaisCaroQue(pedidoMaisCaro)) {
                 pedidoMaisCaro = pedidoAtual;
             }
 
-            montanteDeVendas = montanteDeVendas.add(pedidoAtual.getPreco().multiply(new BigDecimal(pedidoAtual.getQuantidade())));
+            montanteDeVendas = montanteDeVendas.add(pedidoAtual.getValorTotal());
             totalDeProdutosVendidos += pedidoAtual.getQuantidade();
             totalDePedidosRealizados++;
 
